@@ -1,3 +1,4 @@
+use crate::api::client::TwitterClient;
 use crate::api::requests::request_api;
 use crate::error::{Result, TwitterError};
 use crate::models::Profile;
@@ -9,7 +10,6 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::collections::HashMap;
 use std::sync::Mutex;
-use crate::api::client::TwitterClient;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserProfile {
@@ -313,5 +313,38 @@ pub async fn get_user_id_by_screen_name(
         Ok(user_id)
     } else {
         Err(TwitterError::Api("User ID is undefined".into()))
+    }
+}
+
+pub async fn me(client: &TwitterClient) -> Result<Profile> {
+    let mut headers = HeaderMap::new();
+    client.auth.install_headers(&mut headers).await?;
+
+    let (response, _) = request_api::<serde_json::Value>(
+        &client.client,
+        "https://api.twitter.com/1.1/account/verify_credentials.json",
+        headers,
+        reqwest::Method::GET,
+        None,
+    )
+    .await?;
+
+    let legacy_user_raw: LegacyUserRaw = serde_json::from_value(response)?;
+
+    Ok(parse_profile(&legacy_user_raw, legacy_user_raw.verified))
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::tests::get_session;
+
+    #[tokio::test]
+    async fn test_me() {
+        let client = get_session().await.unwrap();
+
+        let profile = client.me().await.unwrap();
+        println!("{profile:?}");
+
+        assert!(!profile.username.is_empty(), "Expected profile");
     }
 }

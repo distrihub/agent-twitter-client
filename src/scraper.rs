@@ -56,6 +56,9 @@ impl Scraper {
     pub async fn get_profile(&self, username: &str) -> Result<crate::models::Profile> {
         crate::profile::get_profile(&self.twitter_client, username).await
     }
+    pub async fn me(&self) -> Result<crate::models::Profile> {
+        crate::profile::me(&self.twitter_client).await
+    }
     pub async fn send_tweet(
         &self,
         text: &str,
