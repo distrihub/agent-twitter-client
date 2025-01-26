@@ -260,3 +260,38 @@ Created by [Rina](https://x.com/Rina_RIG)
 ## Contributing
 
 We welcome contributions! Please feel free to submit a Pull Request.
+
+
+## Parse New Url
+```js
+function parseSearchParams(url) {
+  const urlSearchParams = new URL(url).searchParams;
+  const params = {};
+
+  for (const [key, value] of urlSearchParams) {
+    params[key] = value;
+  }
+
+  return params;
+}
+
+function parse(url) {
+    const urlSearchParams = new URL(url).searchParams;
+    const params = {};
+
+    for (const [key, value] of urlSearchParams) {
+        params[key] = value;
+    }
+    let variables = JSON.parse(params.variables);
+    let features = JSON.parse(params.features);
+
+    let str = `
+        let variables = json!(${params.variables});
+
+        let features = json!(${params.features});
+    `;
+    let obj = {"variables": variables, "features": features};
+    copy(str);
+}
+
+```

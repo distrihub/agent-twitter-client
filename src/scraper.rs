@@ -3,12 +3,13 @@ use crate::auth::user_auth::TwitterUserAuth;
 use crate::constants::BEARER_TOKEN;
 use crate::error::Result;
 use crate::error::TwitterError;
+use crate::explore::ExploreTimeline;
+use crate::messages::DirectMessagesResponse;
 use crate::models::{Profile, Tweet};
 use crate::search::{fetch_search_tweets, SearchMode};
 use crate::timeline::v1::{QueryProfilesResponse, QueryTweetsResponse};
 use crate::timeline::v2::QueryTweetsResponse as V2QueryTweetsResponse;
 use serde_json::Value;
-use crate::messages::DirectMessagesResponse;
 
 pub struct Scraper {
     pub twitter_client: TwitterClient,
@@ -28,7 +29,12 @@ impl Scraper {
         email: Option<String>,
         two_factor_secret: Option<String>,
     ) -> Result<()> {
-        if let Some(user_auth) = self.twitter_client.auth.as_any().downcast_ref::<TwitterUserAuth>() {
+        if let Some(user_auth) = self
+            .twitter_client
+            .auth
+            .as_any()
+            .downcast_ref::<TwitterUserAuth>()
+        {
             let mut auth = user_auth.clone();
             auth.login(
                 &self.twitter_client.client,
@@ -64,11 +70,17 @@ impl Scraper {
         count: i32,
         seen_tweet_ids: Vec<String>,
     ) -> Result<Vec<Value>> {
-        crate::timeline::home::fetch_home_timeline(&self.twitter_client, count, seen_tweet_ids).await
+        crate::timeline::home::fetch_home_timeline(&self.twitter_client, count, seen_tweet_ids)
+            .await
     }
 
     pub async fn save_cookies(&self, cookie_file: &str) -> Result<()> {
-        if let Some(user_auth) = self.twitter_client.auth.as_any().downcast_ref::<TwitterUserAuth>() {
+        if let Some(user_auth) = self
+            .twitter_client
+            .auth
+            .as_any()
+            .downcast_ref::<TwitterUserAuth>()
+        {
             user_auth.save_cookies_to_file(cookie_file).await
         } else {
             Err(TwitterError::Auth("Invalid auth type".into()))
@@ -76,7 +88,12 @@ impl Scraper {
     }
 
     pub async fn get_cookie_string(&self) -> Result<String> {
-        if let Some(user_auth) = self.twitter_client.auth.as_any().downcast_ref::<TwitterUserAuth>() {
+        if let Some(user_auth) = self
+            .twitter_client
+            .auth
+            .as_any()
+            .downcast_ref::<TwitterUserAuth>()
+        {
             user_auth.get_cookie_string().await
         } else {
             Err(TwitterError::Auth("Invalid auth type".into()))
@@ -84,7 +101,12 @@ impl Scraper {
     }
 
     pub async fn set_cookies(&mut self, json_str: &str) -> Result<()> {
-        if let Some(user_auth) = self.twitter_client.auth.as_any().downcast_ref::<TwitterUserAuth>() {
+        if let Some(user_auth) = self
+            .twitter_client
+            .auth
+            .as_any()
+            .downcast_ref::<TwitterUserAuth>()
+        {
             let mut auth = user_auth.clone();
             auth.set_cookies(json_str).await?;
 
@@ -97,7 +119,12 @@ impl Scraper {
     }
 
     pub async fn set_from_cookie_string(&mut self, cookie_string: &str) -> Result<()> {
-        if let Some(user_auth) = self.twitter_client.auth.as_any().downcast_ref::<TwitterUserAuth>() {
+        if let Some(user_auth) = self
+            .twitter_client
+            .auth
+            .as_any()
+            .downcast_ref::<TwitterUserAuth>()
+        {
             let mut auth = user_auth.clone();
             auth.set_from_cookie_string(cookie_string).await?;
 
@@ -108,7 +135,7 @@ impl Scraper {
             Err(TwitterError::Auth("Invalid auth type".into()))
         }
     }
-    
+
     pub async fn get_followers(
         &self,
         user_id: &str,
@@ -141,7 +168,8 @@ impl Scraper {
         quoted_tweet_id: &str,
         media_data: Option<Vec<(Vec<u8>, String)>>,
     ) -> Result<Value> {
-        crate::tweets::create_quote_tweet(&self.twitter_client, text, quoted_tweet_id, media_data).await
+        crate::tweets::create_quote_tweet(&self.twitter_client, text, quoted_tweet_id, media_data)
+            .await
     }
 
     pub async fn fetch_tweets_and_replies(
@@ -150,7 +178,8 @@ impl Scraper {
         max_tweets: i32,
         cursor: Option<&str>,
     ) -> Result<V2QueryTweetsResponse> {
-            crate::tweets::fetch_tweets_and_replies(&self.twitter_client, username, max_tweets, cursor).await
+        crate::tweets::fetch_tweets_and_replies(&self.twitter_client, username, max_tweets, cursor)
+            .await
     }
     pub async fn fetch_tweets_and_replies_by_user_id(
         &self,
@@ -158,7 +187,13 @@ impl Scraper {
         max_tweets: i32,
         cursor: Option<&str>,
     ) -> Result<V2QueryTweetsResponse> {
-        crate::tweets::fetch_tweets_and_replies_by_user_id(&self.twitter_client, user_id, max_tweets, cursor).await
+        crate::tweets::fetch_tweets_and_replies_by_user_id(
+            &self.twitter_client,
+            user_id,
+            max_tweets,
+            cursor,
+        )
+        .await
     }
     pub async fn fetch_list_tweets(
         &self,
@@ -215,7 +250,8 @@ impl Scraper {
         count: i32,
         cursor: Option<String>,
     ) -> Result<V2QueryTweetsResponse> {
-        crate::tweets::fetch_user_tweets(&self.twitter_client, user_id, count, cursor.as_deref()).await
+        crate::tweets::fetch_user_tweets(&self.twitter_client, user_id, count, cursor.as_deref())
+            .await
     }
 
     pub async fn get_direct_message_conversations(
@@ -223,14 +259,19 @@ impl Scraper {
         screen_name: &str,
         cursor: Option<&str>,
     ) -> Result<DirectMessagesResponse> {
-        crate::messages::get_direct_message_conversations(&self.twitter_client, screen_name, cursor).await
+        crate::messages::get_direct_message_conversations(&self.twitter_client, screen_name, cursor)
+            .await
     }
 
-    pub async fn send_direct_message(
-        &self,
-        conversation_id: &str,
-        text: &str,
-    ) -> Result<Value> {
+    pub async fn send_direct_message(&self, conversation_id: &str, text: &str) -> Result<Value> {
         crate::messages::send_direct_message(&self.twitter_client, conversation_id, text).await
+    }
+
+    pub async fn get_explore_timelines(&self) -> Result<Vec<ExploreTimeline>> {
+        crate::explore::get_explore_timelines(&self.twitter_client).await
+    }
+
+    pub async fn get_trends(&self, timeline_id: &str, count: i16) -> Result<Vec<String>> {
+        crate::trends::get_trends(&self.twitter_client, timeline_id, count).await
     }
 }
