@@ -322,7 +322,7 @@ pub async fn me(client: &TwitterClient) -> Result<Profile> {
 
     let (response, _) = request_api::<serde_json::Value>(
         &client.client,
-        "https://api.twitter.com/1.1/account/verify_credentials.json",
+        "https://api.x.com/1.1/account/verify_credentials.json",
         headers,
         reqwest::Method::GET,
         None,
@@ -336,7 +336,7 @@ pub async fn me(client: &TwitterClient) -> Result<Profile> {
 
 #[cfg(test)]
 mod tests {
-    use crate::tests::get_session;
+    use crate::{scraper::Scraper, tests::get_session};
 
     #[tokio::test]
     async fn test_me() {

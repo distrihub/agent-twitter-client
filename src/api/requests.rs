@@ -1,6 +1,6 @@
 use crate::error::Result;
 use reqwest::multipart::Form;
-use reqwest::{Client, header::HeaderMap, Method};
+use reqwest::{header::HeaderMap, Client, Method};
 use serde::de::DeserializeOwned;
 
 pub async fn request_api<T>(
@@ -13,9 +13,7 @@ pub async fn request_api<T>(
 where
     T: DeserializeOwned,
 {
-    let mut request = client
-        .request(method, url)
-        .headers(headers);
+    let mut request = client.request(method, url).headers(headers);
 
     if let Some(json_body) = body {
         request = request.json(&json_body);
@@ -29,9 +27,11 @@ where
         let parsed: T = serde_json::from_str(&text)?;
         Ok((parsed, headers))
     } else {
+        let status = response.status();
+        println!("{}", response.text().await?);
         Err(crate::error::TwitterError::Api(format!(
             "Request failed with status: {}",
-            response.status()
+            status
         )))
     }
 }
@@ -45,7 +45,7 @@ pub async fn get_guest_token(client: &Client, bearer_token: &str) -> Result<Stri
 
     let (response, _) = request_api::<serde_json::Value>(
         client,
-        "https://api.twitter.com/1.1/guest/activate.json",
+        "https://api.x.com/1.1/guest/activate.json",
         headers,
         Method::POST,
         None,

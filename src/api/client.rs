@@ -29,17 +29,17 @@ impl TwitterClient {
             params["media"] = serde_json::json!({ "media_ids": ids });
         }
 
-        let endpoint = "https://api.twitter.com/2/tweets";
+        let endpoint = "https://api.x.com/2/tweets";
         self.post(endpoint, Some(params)).await
     }
 
     pub async fn get_tweet(&self, tweet_id: &str) -> Result<Tweet> {
-        let endpoint = format!("https://api.twitter.com/2/tweets/{}", tweet_id);
+        let endpoint = format!("https://api.x.com/2/tweets/{}", tweet_id);
         self.get(&endpoint).await
     }
 
     pub async fn get_user_tweets(&self, user_id: &str, limit: usize) -> Result<Vec<Tweet>> {
-        let endpoint = format!("https://api.twitter.com/2/users/{}/tweets", user_id);
+        let endpoint = format!("https://api.x.com/2/users/{}/tweets", user_id);
         let params = serde_json::json!({
             "max_results": limit,
             "tweet.fields": "created_at,author_id,conversation_id,public_metrics"
